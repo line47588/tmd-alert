@@ -1,0 +1,33 @@
+name: Scrape TMD Alert
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # รันทุกวันเวลา 07:00 ไทย (00:00 UTC)
+  workflow_dispatch:      # เปิดให้กด Run ด้วยมือได้
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Puppeteer
+        run: npm install puppeteer
+
+      - name: Run scraper
+        run: node scrape.js
+
+      - name: Commit and push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add today.json
+          git commit -m "🔄 Update today.json from TMD" || echo "No changes"
+          git push
