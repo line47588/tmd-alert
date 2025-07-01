@@ -2,26 +2,32 @@ name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'  # ทุกวันเวลา 07:00 (ไทย)
   workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.10'
-      - name: Install req
-        run: pip install requests
+          node-version: 20
+
+      - name: Install xml2js
+        run: npm install xml2js
+
       - name: Run scraper
-        run: python scrape_tmd_storm.py
-      - name: Commit & push
+        run: node scrape.js
+
+      - name: Commit and push
         run: |
           git config user.name github-actions
-          git config user.email actions@github.com
+          git config user.email github-actions@github.com
           git add today.json
-          git commit -m "🔄 Update from XML API" || echo "No changes"
+          git commit -m "🔄 Update today.json from XML API" || echo "No changes"
           git push
