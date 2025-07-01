@@ -1,33 +1,27 @@
-name: Scrape TMD Alert
+name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # รันทุกวันเวลา 07:00 ไทย (00:00 UTC)
-  workflow_dispatch:      # เปิดให้กด Run ด้วยมือได้
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          node-version: 20
-
-      - name: Install Puppeteer
-        run: npm install puppeteer
-
+          python-version: '3.10'
+      - name: Install req
+        run: pip install requests
       - name: Run scraper
-        run: node scrape.js
-
-      - name: Commit and push
+        run: python scrape_tmd_storm.py
+      - name: Commit & push
         run: |
           git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.email actions@github.com
           git add today.json
-          git commit -m "🔄 Update today.json from TMD" || echo "No changes"
+          git commit -m "🔄 Update from XML API" || echo "No changes"
           git push
