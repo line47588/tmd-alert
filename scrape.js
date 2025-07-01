@@ -15,17 +15,18 @@ const fs = require("fs");
       timeout: 60000,
     });
 
+    // ✅ ดึงทุก <p> ในส่วนหลัก
     const result = await page.evaluate(() => {
       const paragraphs = [...document.querySelectorAll("div.tmd-main-content p")];
-      const found = paragraphs.find(p => p.innerText.length > 100 && /ฝน|พายุ|ลมแรง/.test(p.innerText));
-
+      const allText = paragraphs.map(p => p.innerText.trim()).filter(p => p.length > 0);
+      
       return {
         date: new Date().toISOString().split("T")[0],
-        alert: found ? found.innerText : "❌ ไม่พบข้อความเตือนภัย"
+        alert: allText.slice(0, 5).join("\n---\n")  // ดึง 5 ย่อหน้าแรกพร้อมแบ่ง
       };
     });
 
-    console.log("📋 ข้อความ scrape:");
+    console.log("📋 Debug ข้อความที่ดึงได้:");
     console.log(JSON.stringify(result, null, 2));
 
     fs.writeFileSync("today.json", JSON.stringify(result, null, 2), "utf8");
