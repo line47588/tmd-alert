@@ -10,21 +10,18 @@ const fs = require("fs");
 
     const page = await browser.newPage();
 
-    await page.goto("https://www.tmd.go.th/warning-and-events/warning-storm", {
-      waitUntil: "networkidle2",
+    await page.goto("https://www.tmd.go.th/weather_warning.php", {
+      waitUntil: "domcontentloaded",
       timeout: 60000,
     });
 
-    // ✅ รอ article ตัวแรกที่แสดงหลังโหลด
-    await page.waitForSelector("article");
-
     const result = await page.evaluate(() => {
-      const article = document.querySelector("article");
-      const title = article?.querySelector("h3")?.innerText || "❌ ไม่พบหัวข้อ";
-      const text = article?.querySelector("p")?.innerText || "❌ ไม่พบเนื้อหา";
+      const paragraphs = [...document.querySelectorAll("div.tmd-main-content p")];
+      const found = paragraphs.find(p => p.innerText.length > 100 && /ฝน|พายุ|ลมแรง/.test(p.innerText));
+
       return {
         date: new Date().toISOString().split("T")[0],
-        alert: title + "\n" + text
+        alert: found ? found.innerText : "❌ ไม่พบข้อความเตือนภัย"
       };
     });
 
