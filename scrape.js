@@ -5,22 +5,28 @@ const fs = require("fs");
   try {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']  // ✅ สำคัญ!
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
 
     await page.goto("https://www.tmd.go.th/warning-and-events/warning-storm", {
-      waitUntil: "networkidle2",
+      waitUntil: "domcontentloaded",
       timeout: 60000,
     });
 
+    // ✅ รอจนกว่าคำว่า "พายุ" ปรากฏบนหน้า
+    await page.waitForFunction(() => {
+      return [...document.querySelectorAll("h3")].some(el => el.innerText.includes("พายุ"));
+    }, { timeout: 15000 });
+
     const result = await page.evaluate(() => {
-      const h3 = document.querySelector("h3");
-      const p = document.querySelector("h3 + p");
+      const heading = [...document.querySelectorAll("h3")].find(el => el.innerText.includes("พายุ"));
+      const para = heading?.nextElementSibling;
       return {
         date: new Date().toISOString().split("T")[0],
-        alert: (h3?.innerText || "❌ ไม่พบหัวข้อ") + "\n" + (p?.innerText || "❌ ไม่พบเนื้อหา")
+        alert: (heading?.innerText || "❌ ไม่พบหัวข้อพายุ") + "\n" +
+               (para?.innerText || "❌ ไม่พบเนื้อหา")
       };
     });
 
