@@ -9,7 +9,7 @@ console.time('DownloadRSS');
 const req = https.get(url, { timeout: 10000 }, (res) => {
   if (res.statusCode !== 200) {
     console.error(`❌ Failed to fetch RSS. Status: ${res.statusCode}`);
-    res.resume(); // consume response to free up memory
+    res.resume(); // free memory
     return;
   }
 
@@ -19,27 +19,30 @@ const req = https.get(url, { timeout: 10000 }, (res) => {
     console.timeEnd('DownloadRSS');
 
     xml2js.parseString(data, (err, result) => {
-      if (err) return console.error('❌ XML parse error:', err);
+      if (err) {
+        console.error('❌ XML parse error:', err);
+        return;
+      }
 
       try {
         const item = result.rss.channel[0].item[0];
-        const pubDateRaw = item.pubDate[0]; // ex: "Sun, 15 Jun 2025 22:34:47 +07:00"
-        const pubDate = new Date(pubDateRaw);
-        const pubDateStr = pubDate.toISOString();
 
-        const alertText = item.description[0].trim();
+        const pubDateRaw = item.pubDate?.[0] || null;
+        const pubDate = pubDateRaw ? new Date(pubDateRaw).toISOString() : null;
+
+        const alertText = item.description?.[0]?.trim() || '⚠️ No alert found';
         const timeScrap = new Date().toISOString();
 
         const json = {
-          date: pubDateStr,
-          time_scrap: timeScrap,
+          date: pubDate || '',        // จาก pubDate จริง
+          time_scrap: timeScrap,      // เวลาที่ scrape
           alert: alertText
         };
 
         fs.writeFileSync('today.json', JSON.stringify(json, null, 2));
         console.log('✅ today.json updated successfully');
       } catch (e) {
-        console.error('❌ Failed to extract data from RSS:', e);
+        console.error('❌ Failed to process RSS item:', e);
       }
     });
   });
