@@ -21,13 +21,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install xml2js
-        run: npm install xml2js
+      - name: Install dependencies
+        run: |
+          npm install xml2js
+          npm install iconv-lite
 
       - name: Run scraper
-        run: |
-          node scrape.js
-        continue-on-error: false  # ❌ หยุดถ้า scrape.js ล้มเหลว
+        run: node scrape.js
 
       - name: Commit and push
         run: |
