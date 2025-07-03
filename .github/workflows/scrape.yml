@@ -2,7 +2,7 @@ name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # ทุกวันเวลา 07:00 (ไทย)
+  - cron: '0 1 * * *'   # 08:00 ไทย
   workflow_dispatch:
 
 jobs:
