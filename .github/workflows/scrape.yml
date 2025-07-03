@@ -25,12 +25,13 @@ jobs:
         run: npm install xml2js
 
       - name: Run scraper
-        run: node scrape.js
+        run: |
+          node scrape.js
+        continue-on-error: false  # ❌ หยุดถ้า scrape.js ล้มเหลว
 
       - name: Commit and push
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add today.json
-          git commit -m "🔄 Update today.json from XML API" || echo "No changes"
-          git push
+          git diff --cached --quiet || git commit -m "🔄 Update today.json from RSS" && git push || echo "⏩ No changes to commit"
