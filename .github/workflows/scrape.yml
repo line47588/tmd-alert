@@ -1,7 +1,6 @@
 name: Scrape TMD Storm
 
 on:
-on:
   schedule:
     - cron: '0 17 * * *'  # 00:00 ไทย
     - cron: '0 23 * * *'  # 06:00 ไทย
