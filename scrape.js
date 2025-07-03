@@ -1,44 +1,32 @@
-const fs = require("fs");
-const https = require("https");
-const { parseStringPromise } = require("xml2js");
+const fs = require('fs');
+const https = require('https');
+const xml2js = require('xml2js');
 
-(async () => {
-  try {
-    const url = "https://www.tmd.go.th/en/api/xml/storm-tracking";
+const url = 'https://www.tmd.go.th/rss/warning.xml'; // เปลี่ยน URL ให้ตรงของจริง
 
-    https.get(url, (res) => {
-      let data = "";
+https.get(url, (res) => {
+  let data = '';
+  res.on('data', chunk => data += chunk);
+  res.on('end', () => {
+    xml2js.parseString(data, (err, result) => {
+      if (err) return console.error('❌ XML parse error:', err);
 
-      res.on("data", chunk => data += chunk);
-      res.on("end", async () => {
-        try {
-          const xml = await parseStringPromise(data);
-          const item = xml.rss.channel[0].item?.[0];
+      const item = result.rss.channel[0].item[0];
+      const pubDateRaw = item.pubDate[0]; // เช่น "Sun, 15 Jun 2025 22:34:47 +07:00"
+      const pubDate = new Date(pubDateRaw);
+      const pubDateStr = pubDate.toISOString(); // ISO 8601 format
 
-          const title = item.title?.[0]?.trim() || "❌ No title";
-          const rawDesc = item.description?.[0]?.trim() || "";
-          const desc = rawDesc.replace(/<!\[CDATA\[|\]\]>/g, "").trim();
+      const alertText = item.description[0].trim();
+      const timeScrap = new Date().toISOString(); // เวลาที่ scrape
 
-          const result = {
-            date: new Date().toISOString().split("T")[0],
-            alert: `${title}\n${desc}`
-          };
+      const json = {
+        date: pubDateStr,   // เวลาจากกรมอุตุ
+        time_scrap: timeScrap, // เวลาที่ scrape
+        alert: alertText
+      };
 
-          fs.writeFileSync("today.json", JSON.stringify(result, null, 2), "utf8");
-          console.log("✅ today.json created");
-          console.log(result.alert);
-        } catch (e) {
-          console.error("❌ Failed to parse XML:", e);
-          process.exit(1);
-        }
-      });
-    }).on("error", (err) => {
-      console.error("❌ Request failed:", err);
-      process.exit(1);
+      fs.writeFileSync('today.json', JSON.stringify(json, null, 2));
+      console.log('✅ today.json updated:', json);
     });
-
-  } catch (err) {
-    console.error("❌ Scraper crashed:", err);
-    process.exit(1);
-  }
-})();
+  });
+});
