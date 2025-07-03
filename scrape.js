@@ -1,6 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 const xml2js = require('xml2js');
+const iconv = require('iconv-lite'); // เพิ่มตรงนี้
 
 const url = 'https://www.tmd.go.th/en/api/xml/storm-tracking';
 
@@ -15,19 +16,21 @@ const req = https.get(url, { timeout: 10000 }, (res) => {
     return;
   }
 
-  let data = '';
-  res.on('data', chunk => data += chunk);
+  let data = [];
+  res.on('data', chunk => data.push(chunk));
   res.on('end', () => {
     console.timeEnd('DownloadRSS');
 
-    xml2js.parseString(data, (err, result) => {
-      if (err) {
-        console.error('❌ XML parse error:', err.message);
-        process.exit(1);
-        return;
-      }
+    try {
+      const buffer = Buffer.concat(data);
+      const decoded = iconv.decode(buffer, 'TIS-620'); // decode เป็น UTF-8
+      xml2js.parseString(decoded, (err, result) => {
+        if (err) {
+          console.error('❌ XML parse error:', err.message);
+          process.exit(1);
+          return;
+        }
 
-      try {
         const channel = result.rss.channel[0];
         const pubDateRaw = channel.pubDate?.[0];
         const item = channel.item?.[0];
@@ -52,11 +55,11 @@ const req = https.get(url, { timeout: 10000 }, (res) => {
         fs.writeFileSync('today.json', JSON.stringify(json, null, 2));
         didWrite = true;
         console.log('✅ today.json updated successfully');
-      } catch (e) {
-        console.error('❌ Failed to process RSS data:', e.message);
-        process.exit(1);
-      }
-    });
+      });
+    } catch (e) {
+      console.error('❌ Failed to decode or parse XML:', e.message);
+      process.exit(1);
+    }
   });
 });
 
