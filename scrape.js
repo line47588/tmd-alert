@@ -1,7 +1,6 @@
 const fs = require('fs');
 const https = require('https');
 const xml2js = require('xml2js');
-const iconv = require('iconv-lite'); // เพิ่มตรงนี้
 
 const url = 'https://www.tmd.go.th/en/api/xml/storm-tracking';
 
@@ -23,8 +22,9 @@ const req = https.get(url, { timeout: 10000 }, (res) => {
 
     try {
       const buffer = Buffer.concat(data);
-      const decoded = iconv.decode(buffer, 'TIS-620'); // decode เป็น UTF-8
-      xml2js.parseString(decoded, (err, result) => {
+      const xml = buffer.toString(); // UTF-8 โดยตรง
+
+      xml2js.parseString(xml, (err, result) => {
         if (err) {
           console.error('❌ XML parse error:', err.message);
           process.exit(1);
@@ -34,7 +34,13 @@ const req = https.get(url, { timeout: 10000 }, (res) => {
         const channel = result.rss.channel[0];
         const pubDateRaw = channel.pubDate?.[0];
         const item = channel.item?.[0];
-        const title = item.title?.[0]?.trim();
+
+        let title = item.title?.[0]?.trim() || '';
+        try {
+          title = decodeURIComponent(escape(title)); // ฟื้นข้อความหากเพี้ยน
+        } catch (e) {
+          console.warn('⚠️ Failed to decode title. Fallback to raw.');
+        }
 
         if (!pubDateRaw || !title) {
           console.error('❌ Missing pubDate or title');
