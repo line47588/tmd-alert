@@ -6,7 +6,7 @@ const url = 'https://www.tmd.go.th/rss/warning.xml';
 
 console.time('DownloadRSS');
 
-const req = https.get(url, { timeout: 10000 }, (res) => {
+const req = https.get(url, { timeout: 30000 }, (res) => {
   if (res.statusCode !== 200) {
     console.error(`❌ Failed to fetch RSS. Status: ${res.statusCode}`);
     res.resume(); // free memory
