@@ -8,7 +8,7 @@ console.time('DownloadRSS');
 
 let didWrite = false;
 
-const req = https.get(url, { timeout: 30000 }, (res) => {
+const req = https.get(url, { timeout: 10000 }, (res) => {
   if (res.statusCode !== 200) {
     console.error(`❌ Failed to fetch RSS. Status: ${res.statusCode}`);
     process.exit(1);
