@@ -2,7 +2,7 @@ name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # รันทุก 3 ชั่วโมง UTC
+    - cron: '0 * * * *'  # ✅ รันทุก 1 ชั่วโมง (นาทีที่ 0 ของทุกชั่วโมง)
   workflow_dispatch:
 
 jobs:
