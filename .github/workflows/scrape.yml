@@ -2,7 +2,7 @@ name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '0 * * * *'  # ✅ รันทุก 1 ชั่วโมง (นาทีที่ 0 ของทุกชั่วโมง)
+    - cron: '17 * * * *'  # ✅ รันทุก 1 ชั่วโมง
   workflow_dispatch:
 
 jobs:
@@ -17,11 +17,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'  # ✅ cache npm ตาม lockfile
 
       - name: Install dependencies
-        run: |
-          npm install xml2js
-          npm install iconv-lite
+        run: npm ci  # ✅ ใช้ lockfile ที่จะสร้างเองในรอบแรก
 
       - name: Print UTC time
         run: date -u
@@ -33,5 +32,5 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add today.json
+          git add today.json package-lock.json
           git diff --cached --quiet || git commit -m "🔄 Update today.json from RSS" && git push || echo "⏩ No changes to commit"
