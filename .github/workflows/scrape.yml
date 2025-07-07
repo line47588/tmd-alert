@@ -2,7 +2,7 @@ name: Scrape TMD Storm
 
 on:
   schedule:
-    - cron: '17 * * * *'  # ✅ รันทุก 1 ชั่วโมง
+    - cron: '17 * * * *'  # ✅ รันทุกชั่วโมง ตอนนาทีที่ 17 (UTC)
   workflow_dispatch:
 
 jobs:
@@ -13,15 +13,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node.js with npm cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'  # ✅ cache npm ตาม lockfile
+          cache: 'npm'  # ✅ ใช้ npm cache อัตโนมัติ
 
-- name: Install dependencies
-  run: npm install
-
+      - name: Install dependencies
+        run: npm install  # ✅ จะสร้าง package-lock.json อัตโนมัติ (ครั้งแรกเท่านั้น)
 
       - name: Print UTC time
         run: date -u
@@ -29,7 +28,7 @@ jobs:
       - name: Run scraper
         run: node scrape.js
 
-      - name: Commit and push
+      - name: Commit and push updates
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
