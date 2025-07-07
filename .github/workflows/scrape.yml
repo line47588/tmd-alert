@@ -20,8 +20,8 @@ jobs:
           cache: 'npm'  # ✅ ใช้ npm cache อัตโนมัติ
 
       - name: Install dependencies
-        run: npm install  # ✅ จะสร้าง package-lock.json อัตโนมัติ (ครั้งแรกเท่านั้น)
-
+        run: npm ci
+        
       - name: Print UTC time
         run: date -u
 
